@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">SkyVision</string>
+    <string name="api_key">7bc55f3c93d785b7a55cbf8d24f9205f</string>
+    <string name="search">Search</string>
+    <string name="default_city">Hyderabad</string>
+    <string name="default_temperture">25</string>
+</resources>
