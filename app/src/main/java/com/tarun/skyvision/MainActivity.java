@@ -11,12 +11,14 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.w3c.dom.Text;
 
@@ -26,6 +28,8 @@ import java.io.ObjectInputStream;
 import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.TreeMap;
@@ -48,8 +52,10 @@ public class MainActivity extends AppCompatActivity {
     TextView tempTV;
     TextView sunrTV;
     TextView sunsTV;
+    ImageView mImage;
     TreeMap<String,Long> cityMap;
     String[] items;
+    List<String> predictions = Arrays.asList(new String[]{"Haze","wind","Rain","Sun","Haze","wind","Rain","Sun","Haze","wind","Rain","Sun","Haze","wind","Rain","Sun"});
 
     private boolean hasPermissions(Context context, String... permissions) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && context != null && permissions != null) {
@@ -108,8 +114,7 @@ public class MainActivity extends AppCompatActivity {
             }
             return null;
         }
-
-
+        
         @Override
         protected void onPostExecute(String response) {
             super.onPostExecute(response);
@@ -120,12 +125,30 @@ public class MainActivity extends AppCompatActivity {
                 activity.cityTV.setText(json.getString("name"));
                 JSONObject main = (JSONObject) json.get("main");
                 activity.tempTV.setText(String.format(Locale.US, "%.2f C", main.getDouble("temp") - 273));
+                JSONObject weather = ((JSONArray)json.get("weather")).getJSONObject(0);
+                Log.d("WCODE: ",weather.toString()+" "+(getImage(weather.getInt("id"))==R.drawable.haze));
+                activity.mImage.setImageResource(getImage(weather.getInt("id")));
             } catch (Exception e) {
                 Log.e("SK_INFO", Objects.requireNonNull(e.getMessage()));
             }
 
         }
 
+        private int getImage(int code)
+        {
+            if(code>=200 && code<300)
+                return R.drawable.thunderstormwithrain;
+            else if(code>=300 && code<500)
+                return R.drawable.raindrizzle;
+            else if(code>=500 && code<600)
+                return R.drawable.rain;
+            else if(code >=600 && code<700)
+                return R.drawable.snowy;
+            else if(code>=700 && code<800)
+                return  R.drawable.haze;
+            else
+                return R.drawable.sunnyday;
+        }
     }
 
     public void getPermissions() {
@@ -151,30 +174,6 @@ public class MainActivity extends AppCompatActivity {
     }
     public void startSearch(View view)
     {
-
-//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//        builder.setTitle("Select a City: ");
-//        builder.setItems(items, new DialogInterface.OnClickListener() {
-//
-//            @Override public void onClick(DialogInterface dialog, int item) {
-//                Toast.makeText(getBaseContext(),items[item],Toast.LENGTH_LONG).show();
-//            }
-//        });
-//
-//        builder .setCancelable(false)
-//                .setNegativeButton("CANCEL",new DialogInterface.OnClickListener() {
-//
-//                    @Override  public void onClick(DialogInterface dialog, int id) {
-//                        dialog.dismiss();
-//
-//                    }
-//                });
-//
-//
-//        AlertDialog alert =builder.create();
-//
-//
-//        alert.show();
         SelectCity selectCity = new SelectCity(this,items) {
             @Override
             public void onClick(View view) {
@@ -197,6 +196,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         API_KEY = getString(R.string.api_key);
+        mImage = findViewById(R.id.weather_iv);
         cityTV = findViewById(R.id.city_tv);
         tempTV = findViewById(R.id.temp_tv);
         getPermissions();
@@ -222,5 +222,6 @@ public class MainActivity extends AppCompatActivity {
                         fetchTask.execute();
                     }
                 });
+
     }
 }
