@@ -6,7 +6,7 @@ public class Weather {
     JSONObject weatherData;
 
 
-    void setWeatherData(JSONObject weatherData) {
+    public void setWeatherData(JSONObject weatherData) {
         this.weatherData = weatherData;
     }
 

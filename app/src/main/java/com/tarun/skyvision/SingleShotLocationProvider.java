@@ -17,8 +17,8 @@ import android.util.Log;
 
 public class SingleShotLocationProvider {
 
-    public static interface LocationCallback {
-        public void onNewLocationAvailable(GPSCoordinates location,Context context);
+    public interface LocationCallback {
+        void onNewLocationAvailable(GPSCoordinates location, Context context);
     }
     private static boolean isNetworkAvailable(Context context) {
         ConnectivityManager connectivityManager

@@ -43,16 +43,7 @@ import java.util.TreeMap;
 
 public class MainActivity extends AppCompatActivity implements WeatherRecycler.ItemClickListener
 {
-    static String URL_BASE = "http://api.openweathermap.org";
-    static String END_POINT = "/data";
-    static String VERSION = "/2.5";
-    static String SERVICE = "/weather?";
-    static String FORECAST_PARAM="/forecast?";
-    static String CITY_PARAM = "id=";
-    static String LAT_PARAM = "lat=";
-    static String LON_PARAM = "&lon=";
-    static String API_KEY_PARAM = "&APPID=";
-    final String TAG = "SK_APP";
+
     static String API_KEY;
     static long cityID=0;
     static double latitude;
@@ -88,91 +79,6 @@ public class MainActivity extends AppCompatActivity implements WeatherRecycler.I
     }
 
 
-    private static class FetchTask extends AsyncTask<Void, Void, String> {
-
-        private WeakReference<MainActivity> activityReference;
-
-        FetchTask(MainActivity context) {
-
-            activityReference = new WeakReference<>(context);
-        }
-
-        @Override
-        protected String doInBackground(Void... voids) {
-            if(cityID==0)
-            {
-                try {
-                    StringBuilder ans = new StringBuilder();
-                    URL url = new URL(URL_BASE + END_POINT + VERSION + SERVICE + LAT_PARAM + latitude + LON_PARAM +longitude + API_KEY_PARAM + API_KEY);
-                    URLConnection urlCon = url.openConnection();
-                    BufferedReader br = new BufferedReader(new InputStreamReader(urlCon.getInputStream()));
-                    String line;
-                    while ((line = br.readLine()) != null)
-                        ans.append(line);
-                    return ans.toString();
-                } catch (Exception e) {
-                    Log.e("SK_ERROR", Objects.requireNonNull(e.getMessage()));
-                }
-            }
-            else
-            {
-                try {
-                    StringBuilder ans = new StringBuilder();
-                    URL url = new URL(URL_BASE + END_POINT + VERSION + SERVICE + CITY_PARAM + cityID + API_KEY_PARAM + API_KEY);
-                    URLConnection urlCon = url.openConnection();
-                    BufferedReader br = new BufferedReader(new InputStreamReader(urlCon.getInputStream()));
-                    String line;
-                    while ((line = br.readLine()) != null)
-                        ans.append(line);
-                    return ans.toString();
-                }catch (Exception e)
-                {
-                    Log.e("SK_ERROR",Objects.requireNonNull(e.toString()));
-                }
-            }
-            return null;
-        }
-
-
-        @Override
-        protected void onPostExecute(String response) {
-            super.onPostExecute(response);
-            try {
-
-
-                MainActivity activity = activityReference.get();
-                if (activity == null || activity.isFinishing()) {return;}
-
-                JSONObject json = new JSONObject(response);
-                activity.cityTV.setText(json.getString("name"));
-                JSONObject main = (JSONObject) json.get("main");
-                activity.tempTV.setText(String.format(Locale.US, "%.2f C", main.getDouble("temp") - 273));
-                JSONObject weather = ((JSONArray)json.get("weather")).getJSONObject(0);
-                Log.d("WCODE: ",weather.toString()+" "+(getImage(weather.getInt("id"))==R.drawable.haze));
-                activity.mImage.setBackgroundResource(getImage(weather.getInt("id")));
-            } catch (Exception e) {
-                Log.e("SK_INFO", Objects.requireNonNull(e.getMessage()));
-            }
-
-        }
-
-
-        private int getImage(int code)
-        {
-            if(code>=200 && code<300)
-                return R.drawable.thunderstormwithrain;
-            else if(code>=300 && code<500)
-                return R.drawable.raindrizzle;
-            else if(code>=500 && code<600)
-                return R.drawable.rain;
-            else if(code >=600 && code<700)
-                return R.drawable.snowy;
-            else if(code>=700 && code<800)
-                return  R.drawable.haze;
-            else
-                return R.drawable.sunnyday;
-        }
-    }
 
     public void updateUI()
     {

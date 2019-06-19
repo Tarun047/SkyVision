@@ -28,9 +28,9 @@ abstract public class SelectCity extends Dialog implements View.OnClickListener{
         setContentView(R.layout.activity_select_city);
         contextReference = context;
         this.setTitle("Select City");
-        filterText = (EditText) findViewById(R.id.EditBox);
+        filterText = findViewById(R.id.EditBox);
         filterText.addTextChangedListener(filterTextWatcher);
-        list = (ListView) findViewById(R.id.List);
+        list = findViewById(R.id.List);
         adapter = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, cityList);
         list.setAdapter(adapter);
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
