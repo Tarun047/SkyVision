@@ -1,6 +1,7 @@
 package com.tarun.skyvision;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,16 +14,16 @@ import java.util.List;
 
 public class WeatherRecycler extends RecyclerView.Adapter<WeatherRecycler.ViewHolder> {
 
-    private List<Integer> mViewColors;
-    private List<String> mAnimals;
+    private List<Integer> mIcons;
+    private List<String> mPredictions;
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
 
     // data is passed into the constructor
-    WeatherRecycler(Context context, List<Integer> colors, List<String> animals) {
+    WeatherRecycler(Context context, List<Integer> icons, List<String> predictions) {
         this.mInflater = LayoutInflater.from(context);
-        this.mViewColors = colors;
-        this.mAnimals = animals;
+        this.mIcons = icons;
+        this.mPredictions = predictions;
     }
 
     // inflates the row layout from xml when needed
@@ -36,25 +37,25 @@ public class WeatherRecycler extends RecyclerView.Adapter<WeatherRecycler.ViewHo
     // binds the data to the view and textview in each row
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        int color = mViewColors.get(position);
-        String animal = mAnimals.get(position);
-        holder.myView.setBackgroundColor(color);
-        holder.myTextView.setText(animal);
+        String prediction = mPredictions.get(position);
+        holder.myTextView.setText(prediction);
+
     }
 
     // total number of rows
     @Override
     public int getItemCount() {
-        return mAnimals.size();
+        return mIcons.size();
     }
 
     // stores and recycles views as they are scrolled off screen
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         View myView;
         TextView myTextView;
-
+        View rootView;
         ViewHolder(View itemView) {
             super(itemView);
+            rootView=itemView;
             myTextView = itemView.findViewById(R.id.wetherDesc);
             itemView.setOnClickListener(this);
         }
@@ -67,7 +68,7 @@ public class WeatherRecycler extends RecyclerView.Adapter<WeatherRecycler.ViewHo
 
     // convenience method for getting data at click position
     public String getItem(int id) {
-        return mAnimals.get(id);
+        return mPredictions.get(id);
     }
 
     // allows clicks events to be caught
