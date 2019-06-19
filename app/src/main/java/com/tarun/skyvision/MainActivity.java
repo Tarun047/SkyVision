@@ -2,20 +2,13 @@ package com.tarun.skyvision;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.pm.PackageManager;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.Layout;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,18 +20,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
-import java.lang.ref.WeakReference;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.TreeMap;
 
 public class MainActivity extends AppCompatActivity implements WeatherRecycler.ItemClickListener
@@ -56,11 +42,34 @@ public class MainActivity extends AppCompatActivity implements WeatherRecycler.I
     RelativeLayout mImage;
     RecyclerView recyclerView;
     TreeMap<String,Long> cityMap;
+    Weather currentWeather;
+    Weather foreCast;
+
+    FetchTaskCallback callback = new FetchTaskCallback() {
+        @Override
+        void updateUI() {
+            try {
+                JSONObject json = currentWeather.getWeatherData();
+                cityTV.setText(json.getString("name"));
+                JSONObject main = (JSONObject) json.get("main");
+                tempTV.setText(String.format(Locale.US, "%.2f C", main.getDouble("temp") - 273));
+                JSONObject weather = ((JSONArray) json.get("weather")).getJSONObject(0);
+                Log.d("WCODE: ", weather.toString() + " " + (getImage(weather.getInt("id")) == R.drawable.haze));
+                mImage.setBackgroundResource(getImage(weather.getInt("id")));
+            }
+            catch (Exception e)
+            {
+                Log.d("SK_ERROR",e.getMessage());
+            }
+        }
+    };
+
 
     String[] items;
     static List<String> predictions = Arrays.asList(new String[]{"Haze","wind","Rain","Sun","Haze","wind","Rain","Sun","Haze","wind","Rain","Sun","Haze","wind","Rain","Sun"});
     static List<Integer> dummy = Arrays.asList(new Integer[]{1,2,3,4,5,6,7});
     private WeatherRecycler adapter;
+
 
     private boolean hasPermissions(Context context, String... permissions) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && context != null && permissions != null) {
@@ -73,6 +82,23 @@ public class MainActivity extends AppCompatActivity implements WeatherRecycler.I
         return true;
     }
 
+
+    private int getImage(int code)
+    {
+        if(code>=200 && code<300)
+            return R.drawable.thunderstormwithrain;
+        else if(code>=300 && code<500)
+            return R.drawable.raindrizzle;
+        else if(code>=500 && code<600)
+            return R.drawable.rain;
+        else if(code >=600 && code<700)
+            return R.drawable.snowy;
+        else if(code>=700 && code<800)
+            return  R.drawable.haze;
+        else
+            return R.drawable.sunnyday;
+    }
+
     @Override
     public void onItemClick(View view, int position) {
         Toast.makeText(this, "You clicked " + adapter.getItem(position) + " on item position " + position, Toast.LENGTH_SHORT).show();
@@ -80,10 +106,6 @@ public class MainActivity extends AppCompatActivity implements WeatherRecycler.I
 
 
 
-    public void updateUI()
-    {
-
-    }
 
     public void getPermissions() {
         if (Build.VERSION.SDK_INT >= 23) {
@@ -116,7 +138,7 @@ public class MainActivity extends AppCompatActivity implements WeatherRecycler.I
                 cityID=cityMap.get(selected.getText());
                 //Toast.makeText(this.contextReference,cityID+"",Toast.LENGTH_LONG).show();
                 this.dismiss();
-                FetchTask fetchTask = new FetchTask((MainActivity)contextReference);
+                FetchTask fetchTask = new FetchTask(callback,R.integer.CURRENT_WEATHER,currentWeather);
                 fetchTask.execute();
             }
         };
@@ -126,7 +148,7 @@ public class MainActivity extends AppCompatActivity implements WeatherRecycler.I
 
 
 
-    @SuppressLint("MissingPermission")
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -143,6 +165,7 @@ public class MainActivity extends AppCompatActivity implements WeatherRecycler.I
         adapter = new WeatherRecycler(this, dummy, predictions);
         adapter.setClickListener(this);
         recyclerView.setAdapter(adapter);
+        currentWeather = new Weather();
         if(cityMap==null)
             loadCityMap();
         mImage.setOnTouchListener(new View.OnTouchListener() {
@@ -151,6 +174,8 @@ public class MainActivity extends AppCompatActivity implements WeatherRecycler.I
                 if(motionEvent.getAction()==MotionEvent.ACTION_DOWN && !revealed) {
                     recyclerView.setVisibility(View.VISIBLE);
                     revealed=true;
+                    FetchTask fetchTask = new FetchTask(callback,0,foreCast);
+                    fetchTask.execute();
                 }
                 else if(motionEvent.getAction()==MotionEvent.ACTION_DOWN && revealed) {
                     recyclerView.setVisibility(View.INVISIBLE);
@@ -175,8 +200,7 @@ public class MainActivity extends AppCompatActivity implements WeatherRecycler.I
                         Log.d("Location", "my location is " + location.latitude + " " + location.longitude);
                         latitude=location.latitude;
                         longitude=location.longitude;
-                        MainActivity activity = (MainActivity)context;
-                        FetchTask fetchTask = new FetchTask(activity);
+                        FetchTask fetchTask = new FetchTask(callback,R.integer.CURRENT_WEATHER,currentWeather);
                         fetchTask.execute();
                     }
                 });

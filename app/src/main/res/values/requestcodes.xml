@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="CURRENT_WEATHER">10</integer>
+    <integer name="FORECAST">20</integer>
+</resources>
